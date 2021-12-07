@@ -79,6 +79,8 @@ class DHT22Logger:
             temperature = round(raw_temperature)
             self.verbose('Temperature: ' + str(temperature))
             self.verbose('Humidity: ' + str(humidity))
+            if humidity <= 100: # Break if DHT22 value above 100% humidity (bad value)
+                break
             if humidity != self.humidity:
                 self.humidity = humidity
                 self.publish_humidity(humidity)
@@ -97,6 +99,7 @@ class DHT22Logger:
         if self.mqtt_connected:
             self.verbose('Publishing temperature: ' + str(temperature))
             self.mqtt_client.publish(self.config['topics']['temperature'], str(temperature), 0, True)
+            self.mqtt_client.publish(self.config['topics']['unit_of_measurement'], "°C", 0, True) # Add unit of measurement as Celsius for proper handling in HomeAssistant
 
     def start(self):
         self.worker = Thread(target=self.update)
